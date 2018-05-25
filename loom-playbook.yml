@@ -1,0 +1,89 @@
+---
+- name: Local
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+  - name: Retrieve the loom binary
+    command: curl -sL -o /tmp/loom-{{ loom_build }} https://private.delegatecall.com/loom/linux/{{ loom_build }}/loom creates=/tmp/loom-{{ loom_build }}
+
+- name: Provision multi-node loom
+  hosts: all
+  gather_facts: yes
+  connection: ssh
+
+  tasks:
+  - name: Copy loom binary
+    become: yes
+    copy:
+      src: /tmp/loom-{{ loom_build }}
+      dest: /usr/bin/loom
+      owner: root
+      group: root
+      mode: 0755
+
+  - name: Check that the {{ working_directory }}/genesis.json exists
+    stat:
+      path: "{{ working_directory }}/genesis.json"
+    register: stat_result_genesis
+
+  - name: Run loom init
+    command: chdir={{ working_directory }} /usr/bin/loom init
+    when: stat_result_genesis.stat.exists == False
+
+  - name: Copy genesis.json
+    copy:
+      src: files/genesis.json
+      dest: "{{ working_directory }}/genesis.json"
+      owner: "{{ user }}"
+      group: "{{ user }}"
+      mode: 0644
+
+  - name: Check that the {{ working_directory }}/chaindata/config/genesis.json.original exists
+    stat:
+      path: "{{ working_directory }}/chaindata/config/genesis.json.original"
+    register: stat_result_original
+
+  - name: Move original chaindata/config/genesis.json to backup
+    command: chdir={{ working_directory }} mv chaindata/config/genesis.json chaindata/config/genesis.json.original
+    when: stat_result_original.stat.exists == False
+
+  - slurp:
+      path: "{{ working_directory }}/chaindata/config/genesis.json.original"
+    register: genesis_file
+
+  - set_fact:
+      genesis: "{{ (genesis_file.content|b64decode|from_json) }}"
+
+  - name: Get nodekey
+    command: chdir={{ working_directory }} /usr/bin/loom nodekey
+    register: nodekey
+
+  - name: Keep nodekey
+    set_fact:
+      nodekey: "{{ nodekey.stdout_lines[0] }}"
+
+  - name: Copy newly combined genesis.json
+    template:
+      src: templates/genesis.json.j2
+      dest: "{{ working_directory }}/chaindata/config/genesis.json"
+      owner: "{{ user }}"
+      group: "{{ user }}"
+      mode: 0644
+
+  - name: Copy init script
+    become: yes
+    template:
+      src: templates/loom.service.j2
+      dest: /etc/systemd/system/loom.service
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Restart loom service
+    become: yes
+    systemd:
+      state: restarted
+      daemon_reload: yes
+      name: loom.service

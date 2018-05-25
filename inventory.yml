@@ -1,0 +1,20 @@
+---
+all:
+  vars:
+    loom_build: build-132
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+    working_directory: /home/ubuntu
+    user: ubuntu
+  hosts:
+    loom-0:
+      ansible_host: 1.2.3.4
+      private_ip: 10.2.3.4
+    loom-1:
+      ansible_host: 5.6.7.8
+      private_ip: 10.6.7.8
+    loom-2:
+      ansible_host: 4.3.2.1
+      private_ip: 10.3.2.1
+    loom-3:
+      ansible_host: 8.7.6.5
+      private_ip: 10.7.6.5
