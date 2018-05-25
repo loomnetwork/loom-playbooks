@@ -35,7 +35,7 @@ Vagrant.configure("2") do |config|
         node.vm.provision "ansible" do |ansible|
           ansible.playbook = "loom-playbook.yml"
           ansible.limit = "all,localhost"
-          ansible.verbose = "-vvv"
+          ansible.verbose = "-vv"
           ansible.host_vars = host_vars
           ansible.extra_vars = {
             user: "vagrant",
