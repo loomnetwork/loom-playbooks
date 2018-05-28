@@ -17,6 +17,14 @@
   command: chdir={{ working_directory }} /usr/bin/loom init
   when: stat_result_genesis.stat.exists == False
 
+- name: Copy loom.yml
+  copy:
+    src: files/loom.yml
+    dest: "{{ working_directory }}/loom.yml"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0644
+
 - name: Copy genesis.json
   copy:
     src: files/genesis.json
