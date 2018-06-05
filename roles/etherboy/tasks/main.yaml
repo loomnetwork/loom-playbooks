@@ -1,0 +1,106 @@
+---
+- name: Copy loom binary
+  copy:
+    src: /tmp/loom-{{ loom_build }}
+    dest: /usr/bin/loom
+    owner: root
+    group: root
+    mode: 0755
+  notify:
+  - Restart etherboy service
+
+- name: Copy etherboycli binary
+  copy:
+    src: /tmp/etherboycli-{{ etherboy_build }}
+    dest: /usr/bin/etherboycli
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Creates contracts directory
+  file:
+    path: "{{ working_directory }}/contracts"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+
+- name: Copy etherboycli out of process plugin
+  copy:
+    src: /tmp/etherboycore.0.0.1-{{ etherboy_build }}
+    dest: "{{ working_directory }}/contracts/etherboycore.0.0.1"
+    owner: ubuntu
+    group: ubuntu
+    mode: 0755
+  notify:
+  - Restart etherboy service
+
+- name: Check that the {{ working_directory }}/genesis.json exists
+  stat:
+    path: "{{ working_directory }}/genesis.json"
+  register: stat_result_genesis
+
+- name: Run loom init
+  command: chdir={{ working_directory }} sudo -u ubuntu /usr/bin/loom init
+  when: stat_result_genesis.stat.exists == False
+
+- name: Copy loom.yml
+  copy:
+    src: files/loom.yml
+    dest: "{{ working_directory }}/loom.yml"
+    owner: ubuntu
+    group: ubuntu
+    mode: 0644
+
+- name: Copy genesis.json for contracts
+  copy:
+    src: files/genesis.json
+    dest: "{{ working_directory }}/genesis.json"
+    owner: ubuntu
+    group: ubuntu
+    mode: 0644
+  notify:
+  - Restart etherboy service
+
+- name: Check that the {{ working_directory }}/chaindata/config/genesis.json.original exists
+  stat:
+    path: "{{ working_directory }}/chaindata/config/genesis.json.original"
+  register: stat_result_original
+
+- name: Move original chaindata/config/genesis.json to backup
+  command: chdir={{ working_directory }} mv chaindata/config/genesis.json chaindata/config/genesis.json.original
+  when: stat_result_original.stat.exists == False
+
+- slurp:
+    path: "{{ working_directory }}/chaindata/config/genesis.json.original"
+  register: genesis_file
+
+- set_fact:
+    genesis: "{{ (genesis_file.content|b64decode|from_json) }}"
+
+- name: Get nodekey
+  command: chdir={{ working_directory }} sudo -u ubuntu /usr/bin/loom nodekey
+  register: nodekey
+
+- name: Keep nodekey
+  set_fact:
+    nodekey: "{{ nodekey.stdout_lines[0] }}"
+
+- name: Copy newly combined genesis.json
+  template:
+    src: templates/genesis.json.j2
+    dest: "{{ working_directory }}/chaindata/config/genesis.json"
+    owner: ubuntu
+    group: ubuntu
+    mode: 0644
+  notify:
+  - Restart etherboy service
+
+- name: Copy init script
+  template:
+    src: templates/etherboy.service.j2
+    dest: /etc/systemd/system/etherboy.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+  - Restart etherboy service

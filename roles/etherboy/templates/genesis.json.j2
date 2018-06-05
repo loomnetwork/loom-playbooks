@@ -1,0 +1,12 @@
+{% set entries=[] %}
+{% for host in groups['etherboy'] %}
+    {{ entries.append(hostvars[host]['genesis']['validators'][0] | to_nice_json) }}
+{% endfor %}
+{
+  "genesis_time": "0001-01-01T00:00:00Z",
+  "chain_id": "default",
+  "validators": [
+      {{ entries|join(',') }}
+  ],
+  "app_hash": ""
+}
