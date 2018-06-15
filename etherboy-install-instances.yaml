@@ -21,3 +21,12 @@
   connection: ssh
   roles:
     - { role: etherboy, tags: ['etherboy'], working_directory: /home/ubuntu }
+    - role: node_exporter
+
+- name: Manage monitoring etherboy instances
+  hosts: monitoring
+  gather_facts: yes
+  roles:
+    - docker
+    - influxdb-grafana
+    - prometheus

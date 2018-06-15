@@ -43,3 +43,11 @@ all:
           private_ip:
           aws_subnet:
           syslog_identifier: etherboy-3
+    monitoring:
+      hosts:
+        monitoring-0:
+          ansible_hostname: monitoring-0
+          ansible_host:
+          private_ip:
+          aws_subnet:
+          syslog_identifier: monitoring-0
