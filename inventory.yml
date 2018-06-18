@@ -1,7 +1,7 @@
 ---
 all:
   vars:
-    loom_build: build-132
+    loom_build: latest
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
     working_directory: /home/ubuntu
     user: ubuntu
