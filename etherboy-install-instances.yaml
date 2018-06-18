@@ -28,5 +28,6 @@
   gather_facts: yes
   roles:
     - docker
-    - influxdb-grafana
+    - influxdb
     - prometheus
+    - grafana

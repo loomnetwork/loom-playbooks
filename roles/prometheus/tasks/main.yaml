@@ -1,10 +1,17 @@
 ---
-- name: Get prometheus
+- name: Check if git installed
+  become: yes
+  package:
+    name: "git"
+    state: "present"
+
+- name: Download prometheus
   become: yes
   git:
-    repo: 'https://github.com/vegasbrianc/prometheus.git'
-    dest: /root/prometheus
-    version: master
+    repo: "https://github.com/vegasbrianc/prometheus.git"
+    dest: "/root/prometheus/"
+    force: yes
+    depth: 1
 
 - name: Generate docker-compose.yml
   become: yes

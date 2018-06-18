@@ -1,0 +1,25 @@
+---
+- name: Make directory
+  become: yes
+  file:
+    path: "/root/influxdb"
+    state: "directory"
+
+- name: Generate docker-compose.yml
+  become: yes
+  template:
+    src: "docker-compose.yml.j2"
+    dest: "/root/influxdb/docker-compose.yml"
+
+- name: Generate env.influxdb
+  become: yes
+  template:
+    src: "env.influxdb.j2"
+    dest: "/root/influxdb/env.influxdb"
+
+- name: Start influxdb
+  become: yes
+  docker_service:
+    project_src: "/root/influxdb/"
+    pull: yes
+    restarted: yes

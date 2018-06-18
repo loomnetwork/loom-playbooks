@@ -1,0 +1,25 @@
+---
+- name: Make directory
+  become: yes
+  file:
+    path: "/root/grafana"
+    state: "directory"
+
+- name: Generate docker-compose.yml
+  become: yes
+  template:
+    src: "docker-compose.yml.j2"
+    dest: "/root/grafana/docker-compose.yml"
+
+- name: Generate env.grafana
+  become: yes
+  template:
+    src: "env.grafana.j2"
+    dest: "/root/grafana/env.grafana"
+
+- name: Start grafana
+  become: yes
+  docker_service:
+    project_src: "/root/grafana/"
+    pull: yes
+    restarted: yes

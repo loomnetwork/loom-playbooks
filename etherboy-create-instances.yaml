@@ -44,8 +44,10 @@
       region: "{{ aws_region }}"
       rules:
         - proto: tcp
-          to_port: 3000
+          ports:
+          - 3000
           cidr_ip: 0.0.0.0/0
+          rule_desc: allow all on port 3000
         - proto: tcp
           from_port: 22
           to_port: 22
