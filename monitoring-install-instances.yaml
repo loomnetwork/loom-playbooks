@@ -1,0 +1,9 @@
+---
+- name: Manage monitoring etherboy instances
+  hosts: monitoring
+  gather_facts: yes
+  roles:
+    - docker
+    - influxdb
+    - prometheus
+    - grafana

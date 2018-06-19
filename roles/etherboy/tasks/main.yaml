@@ -6,8 +6,6 @@
     owner: root
     group: root
     mode: 0755
-  notify:
-  - Restart etherboy service
 
 - name: Copy etherboycli binary
   copy:
@@ -31,8 +29,6 @@
     owner: ubuntu
     group: ubuntu
     mode: 0755
-  notify:
-  - Restart etherboy service
 
 - name: Check that the {{ working_directory }}/genesis.json exists
   stat:
@@ -102,5 +98,3 @@
     owner: root
     group: root
     mode: 0644
-  notify:
-  - Restart etherboy service

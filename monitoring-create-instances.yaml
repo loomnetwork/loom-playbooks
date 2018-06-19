@@ -13,19 +13,19 @@
       name: "{{ aws_keypair_name }}"
       region: "{{ aws_region }}"
 
-  - name: AWS -- Create security group
+  - name: AWS -- Create security group monitoring_sg
     local_action:
       module: ec2_group
-      name: etherboy_sg
-      description: Security group for etherboy instances
+      name: monitoring_sg
+      description: Security group for etherboy monitoring instances
       vpc_id: "{{ aws_vpc_id }}"
       region: "{{ aws_region }}"
       rules:
         - proto: tcp
           ports:
-            - 46656-46658
-            - 9999
-          cidr_ip: "{{ aws_vpc_subnet }}"
+          - 3000
+          cidr_ip: 0.0.0.0/0
+          rule_desc: allow all on port 3000
         - proto: tcp
           from_port: 22
           to_port: 22
@@ -35,12 +35,12 @@
           to_port:  -1
           cidr_ip: 0.0.0.0/0
 
-  - name: AWS -- Launch etherboy instances
+  - name: AWS -- Launch monitoring instances
     local_action:
       module: ec2
       id: "{{ hostvars[item]['ansible_hostname'] }}"
-      key_name: "{{ aws_keypair_name }}"
-      group: etherboy_sg
+      key_name: etherboy_key
+      group: monitoring_sg
       instance_type: "{{ aws_instance_type }}"
       image: "{{ aws_ami_id }}"
       wait: yes
@@ -55,8 +55,8 @@
       user_data: "{{ aws_user_data }}"
       volumes:
         - device_name: /dev/sda1
-          volume_type: gp2
+          device_type: gp2
           volume_size: "{{ disk_size }}"
           delete_on_termination: true
       state: present
-    with_items: "{{ groups['etherboy'] }}"
+    with_items: "{{ groups['monitoring'] }}"
