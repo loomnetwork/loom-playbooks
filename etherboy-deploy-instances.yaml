@@ -48,6 +48,7 @@
       group: etherboy_sg
       instance_type: "{{ aws_instance_type }}"
       image: "{{ aws_ami_id }}"
+      instance_initiated_shutdown_behavior: "terminate"
       wait: yes
       wait_timeout: 500
       instance_profile_name: "{{ aws_instance_profile }}"
@@ -107,3 +108,10 @@
   roles:
     - { role: etherboy, tags: ['etherboy'], working_directory: /home/ubuntu }
     - role: node_exporter
+
+- hosts: Schedule shutdown
+  gather_facts: no
+  tasks:
+    - name: shutdown
+      command: /sbin/shutdown -h "{{ life_timeout }}"
+      sudo: yes

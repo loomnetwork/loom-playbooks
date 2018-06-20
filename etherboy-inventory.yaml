@@ -13,6 +13,7 @@ all:
     aws_vpc_subnet: 10.10.0.0/16
     aws_instance_profile: loadtest-vpc
     aws_keypair_name: loadtest
+    life_timeout: 604800
     aws_user_data: |
       #!/bin/bash
       sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.5 1
