@@ -1,5 +1,5 @@
 {% set entries=[] %}
-{% for host in groups['etherboy'] %}
+{% for host in groups['launched'] %}
     {{ entries.append(hostvars[host]['genesis']['validators'][0] | to_nice_json) }}
 {% endfor %}
 {

@@ -9,10 +9,10 @@ all:
     aws_ami_id: ami-a4dc46db
     aws_instance_type: t2.medium
     aws_region: us-east-1
-    aws_vpc_id:
-    aws_vpc_subnet:
-    aws_instance_profile:
-    aws_keypair_name:
+    aws_vpc_id: vpc-5cfef627
+    aws_vpc_subnet: 10.10.0.0/16
+    aws_instance_profile: loadtest-vpc
+    aws_keypair_name: loadtest
     aws_user_data: |
       #!/bin/bash
       sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.5 1
@@ -20,34 +20,14 @@ all:
     etherboy:
       hosts:
         etherboy-0:
-          ansible_hostname: etherboy-0
-          ansible_host:
-          private_ip:
-          aws_subnet:
-          syslog_identifier: etherboy-0
+          ansible_hostname: etherboy-{{ instance_prefix }}-0
+          aws_subnet: subnet-e74fabd9
         etherboy-1:
-          ansible_hostname: etherboy-1
-          ansible_host:
-          private_ip:
-          aws_subnet:
-          syslog_identifier: etherboy-1
+          ansible_hostname: etherboy-{{ instance_prefix }}-1
+          aws_subnet: subnet-e74fabd9
         etherboy-2:
-          ansible_hostname: etherboy-2
-          ansible_host:
-          private_ip:
-          aws_subnet:
-          syslog_identifier: etherboy-2
+          ansible_hostname: etherboy-{{ instance_prefix }}-2
+          aws_subnet: subnet-e74fabd9
         etherboy-3:
-          ansible_hostname: etherboy-3
-          ansible_host:
-          private_ip:
-          aws_subnet:
-          syslog_identifier: etherboy-3
-    monitoring:
-      hosts:
-        monitoring-0:
-          ansible_hostname: monitoring-0
-          ansible_host:
-          private_ip:
-          aws_subnet:
-          syslog_identifier: monitoring-0
+          ansible_hostname: etherboy-{{ instance_prefix }}-3
+          aws_subnet: subnet-e74fabd9

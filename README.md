@@ -15,15 +15,6 @@ ansible-playbook -i inventory.yml -vv loom-playbook.yml
 1. Set up AWS credentials
 2. Run playbook
     ```bash
-    ansible-playbook -i etherboy-inventory.yaml etherboy-create-instances.yaml -vv
+    ansible-playbook -i etherboy-inventory.yaml etherboy-deploy-instances.yaml --key-file ~/.ssh/etherboy_key.pem -u ubuntu -vv
     ```
 3. Collect keypair and save it for example to `~/.ssh/etherboy_key.pem`
-4. Update inventory with IP numbers
-
-### Install services on instances
-
-1. Run playbook
-
-    ```bash
-    ansible-playbook -i etherboy-inventory.yaml etherboy-install-instances.yaml --key-file ~/.ssh/etherboy_key.pem -u ubuntu -vv
-    ```

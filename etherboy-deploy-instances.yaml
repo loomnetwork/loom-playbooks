@@ -3,6 +3,7 @@
   hosts: localhost
   connection: local
   gather_facts: no
+  tags: provisioning
 
   vars:
 
@@ -30,6 +31,10 @@
           from_port: 22
           to_port: 22
           cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 9100
+          to_port: 9100
+          cidr_ip: "{{ aws_vpc_subnet }}"
         - proto: icmp
           from_port: 8
           to_port:  -1
@@ -60,3 +65,45 @@
           delete_on_termination: true
       state: present
     with_items: "{{ groups['etherboy'] }}"
+    register: ec2
+
+  - name: Add new instance to host group
+    add_host:
+      hostname: "{{ item.instances[0].public_ip }}"
+      private_ip: "{{ item.instances[0].private_ip }}"
+      groupname: launched
+    with_items: "{{ ec2.results }}"
+
+  - name: Wait for SSH to come up
+    wait_for:
+      host: "{{ item.instances[0].public_ip }}"
+      port: 22
+      delay: 60
+      timeout: 320
+      state: started
+    with_items: "{{ ec2.results }}"
+
+- name: Local
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+  - name: Retrieve the etherboycli binary
+    command: curl -sL -o /tmp/etherboycli-{{ etherboy_build }} https://private.delegatecall.com/etherboy/linux/{{ etherboy_build }}/etherboycli creates=/tmp/etherboycli-{{ etherboy_build }}
+
+  - name: Retrieve the etherboy out of process plugin
+    command: curl -sL -o /tmp/etherboycore.0.0.1-{{ etherboy_build }} https://private.delegatecall.com/etherboy/linux/{{ etherboy_build }}/etherboycore.0.0.1 creates=/tmp/etherboycore.0.0.1-{{ etherboy_build }}
+
+  - name: Retrieve the loom binary
+    command: curl -sL -o /tmp/loom-{{ loom_build }} https://private.delegatecall.com/loom/linux/{{ loom_build }}/loom creates=/tmp/loom-{{ loom_build }}
+
+
+- name: Manage etherboy instances
+  hosts: launched
+  become: yes
+  gather_facts: yes
+  connection: ssh
+  roles:
+    - { role: etherboy, tags: ['etherboy'], working_directory: /home/ubuntu }
+    - role: node_exporter
