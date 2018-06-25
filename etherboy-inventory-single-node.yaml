@@ -1,0 +1,26 @@
+---
+all:
+  vars:
+    disk_size: 10
+    etherboy_build: latest
+    loom_build: latest
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+    influxdb_host: '10.10.0.27'
+
+    aws_ami_id: ami-a4dc46db
+    aws_instance_type: t2.medium
+    aws_region: us-east-1
+    aws_vpc_id: vpc-5cfef627
+    aws_vpc_subnet: 10.10.0.0/16
+    aws_subnet: subnet-e74fabd9
+    aws_instance_profile: loadtest-vpc
+    aws_keypair_name: loadtest
+    life_timeout: 604800
+    aws_user_data: |
+      #!/bin/bash
+      sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.5 1
+  children:
+    etherboy:
+      hosts:
+        etherboy-0:
+          ansible_hostname: etherboy-{{ instance_prefix }}-0
