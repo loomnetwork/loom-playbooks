@@ -92,6 +92,12 @@
       groupname: launched
     with_items: "{{ ec2.results }}"
 
+  - name: Add new instance to internal host group
+    add_host:
+      hostname: "{{ item.instances[0].private_ip }}"
+      groupname: launched-int
+    with_items: "{{ ec2.results }}"
+
   - name: Wait for SSH to come up
     wait_for:
       host: "{{ item.instances[0].public_ip }}"
