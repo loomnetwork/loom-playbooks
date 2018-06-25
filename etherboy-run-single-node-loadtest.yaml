@@ -6,6 +6,11 @@
   gather_facts: no
 
   tasks:
+  - name: Waiting etherboy up
+    wait_for:
+      host: groups['launched-int'][0]
+      port: 9999
+      delay: 300
   - name: Run loadtest
     command: docker run -e HOST={{ groups['launched-int'][0] }} -e INFLUXDB_HOST={{ influxdb_host }} --rm docker.io/loomload/loadtest
 
