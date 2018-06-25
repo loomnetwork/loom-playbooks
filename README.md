@@ -18,3 +18,8 @@ ansible-playbook -i inventory.yml -vv loom-playbook.yml
     ansible-playbook -i etherboy-inventory.yaml etherboy-deploy-instances.yaml --key-file ~/.ssh/etherboy_key.pem -u ubuntu -vv  --extra-vars "instance_prefix=N"
     ```
 3. Collect keypair and save it for example to `~/.ssh/etherboy_key.pem`
+
+### Run test (create instances, deploy etherboy, run tests and shutdown)
+    ```bash
+    ansible-playbook -i etherboy-inventory-single-node.yaml etherboy-run-loadtest.yaml -u ubuntu -vv  --extra-vars "instance_prefix=N life_timeout=604800"
+    ``` 
