@@ -88,7 +88,6 @@
   - name: Add new instance to host group
     add_host:
       hostname: "{{ item.instances[0].public_ip }}"
-      private_ip: "{{ item.instances[0].private_ip }}"
       groupname: launched
     with_items: "{{ ec2.results }}"
 
