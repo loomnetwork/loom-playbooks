@@ -130,13 +130,3 @@
   roles:
     - { role: etherboy, tags: ['etherboy'], working_directory: /home/ubuntu }
     - role: node_exporter
-
-- name: Schedule shutdown
-  hosts: launched
-  become: yes
-  gather_facts: yes
-  connection: ssh
-  tasks:
-    - name: shutdown
-      command: /sbin/shutdown -h "{{ life_timeout }}"
-      sudo: yes

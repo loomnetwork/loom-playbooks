@@ -1,0 +1,20 @@
+- import_playbook: etherboy-deploy-instances.yaml
+
+- name: Local
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+  - name: Run loadtest
+    command: "docker run -e HOST={{ groups['launched-int'][0] }} -e INFLUXDB_HOST={{ influxdb_host }} --rm docker.io/loomload/loadtest"
+
+- name: Schedule shutdown
+  hosts: launched
+  become: yes
+  gather_facts: yes
+  connection: ssh
+  tasks:
+    - name: shutdown
+      command: /sbin/shutdown -h "{{ life_timeout }}"
+      sudo: yes
