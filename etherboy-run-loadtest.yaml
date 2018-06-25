@@ -6,6 +6,14 @@
   gather_facts: no
 
   tasks:
+  - name: "wait for Etherboy to come up"
+    uri:
+      url: "http://{{ groups['launched-int'][0] }}:46658/query"
+      status_code: 200
+    register: result
+    until: result.status == 200
+    retries: 60
+    delay: 1
   - name: Run loadtest
     command: "docker run -e HOST={{ groups['launched-int'][0] }} -e INFLUXDB_HOST={{ influxdb_host }} --rm docker.io/loomload/loadtest"
 
