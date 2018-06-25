@@ -8,7 +8,7 @@
   tasks:
   - name: Wait 300 seconds for port 8000 of any IP to close active connections, don't start checking for 10 seconds
     wait_for:
-      host: {{ groups['launched-int'][0] }}
+      host: groups['launched-int'][0]
       port: 9999
       delay: 10
   - name: Run loadtest
