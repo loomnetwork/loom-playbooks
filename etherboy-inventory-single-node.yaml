@@ -6,6 +6,7 @@ all:
     loom_build: latest
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
     influxdb_host: '10.10.0.27'
+    loadtest_duration: 0
 
     aws_ami_id: ami-a4dc46db
     aws_instance_type: t2.medium
