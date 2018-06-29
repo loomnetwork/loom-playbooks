@@ -25,4 +25,4 @@
     retries: 60
     delay: 1
   - name: Run loadtest
-    command: "docker run -d -e DURATION={{ loadtest_duration }} -e HOST={{ groups['launched-int'][0] }} -e INFLUXDB_HOST={{ influxdb_host }} --rm docker.io/loomload/loadtest:latest"
+    command: "docker run -d -e DURATION={{ loadtest_duration }} -e HOST={{ groups['launched-int'][0] }} -e INFLUXDB_HOST={{ influxdb_host }} --entrypoint /usr/bin/solidity-loadtest docker.io/loomload/loadtest:latest"
