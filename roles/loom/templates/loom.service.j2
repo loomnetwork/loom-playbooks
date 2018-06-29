@@ -2,19 +2,25 @@
 Description=Loom
 After=network.target
 
-{% set peers=[] %}
-{% for host in groups['all'] %}
-  {% if hostvars[host]['private_ip'] != hostvars[inventory_hostname]['private_ip'] %}
-    {% set peer = "tcp://" + hostvars[host]['nodekey'] + "@" + hostvars[host]['private_ip'] + ":46656" %}
-    {{ peers.append(peer) }}
-  {% endif %}
-{% endfor %}
+{% if HOST_COUNT|int > 1 %}
+  {% set peers=[] %}
+  {% for host in groups['all'] %}
+    {% if hostvars[host]['private_ip'] != hostvars[inventory_hostname]['private_ip'] %}
+      {% set peer = "tcp://" + hostvars[host]['nodekey'] + "@" + hostvars[host]['private_ip'] + ":46656" %}
+      {{ peers.append(peer) }}
+    {% endif %}
+  {% endfor %}
+{% endif %}
 
 [Service]
 Type=simple
 User={{ user }}
 WorkingDirectory={{ working_directory }}
-ExecStart=/usr/bin/loom run --persistent-peers {{ peers|join(',')}}
+{% if HOST_COUNT|int > 1 %}
+ExecStart=/usr/bin/loom run --persistent-peers {{ peers|join(',') }}
+{% else %}
+ExecStart=/usr/bin/loom run
+{% endif %}
 Restart=always
 RestartSec=2
 StartLimitInterval=0

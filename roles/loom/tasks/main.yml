@@ -25,45 +25,81 @@
     group: "{{ user }}"
     mode: 0644
 
-- name: Copy genesis.json
-  copy:
-    src: files/genesis.json
-    dest: "{{ working_directory }}/genesis.json"
-    owner: "{{ user }}"
-    group: "{{ user }}"
-    mode: 0644
+# genesis.json #1
+
+- name: Check that the {{ working_directory }}/genesis.json.original exists
+  stat:
+    path: "{{ working_directory }}/genesis.json.original"
+  register: stat_result_genesis_original
+  when: HOST_COUNT|int > 1
+
+- name: Move original { working_directory }}/genesis.json to backup
+  command: chdir={{ working_directory }} mv genesis.json genesis.json.original
+  when: stat_result_genesis_original.stat.exists == False
+  when: HOST_COUNT|int > 1
+
+- slurp:
+    path: "{{ working_directory }}/genesis.json.original"
+  register: genesis_json_file
+  when: HOST_COUNT|int > 1
+
+- set_fact:
+    genesis: "{{ (genesis_json_file.content|b64decode|from_json) }}"
+  when: HOST_COUNT|int > 1
+
+# genesis.json #2
 
 - name: Check that the {{ working_directory }}/chaindata/config/genesis.json.original exists
   stat:
     path: "{{ working_directory }}/chaindata/config/genesis.json.original"
-  register: stat_result_original
+  register: stat_result_chaindata_genesis_original
+  when: HOST_COUNT|int > 1
 
-- name: Move original chaindata/config/genesis.json to backup
+- name: Move original {{ working_directory }}/chaindata/config/genesis.json to backup
   command: chdir={{ working_directory }} mv chaindata/config/genesis.json chaindata/config/genesis.json.original
-  when: stat_result_original.stat.exists == False
+  when: stat_result_chaindata_genesis_original.stat.exists == False
+  when: HOST_COUNT|int > 1
 
 - slurp:
     path: "{{ working_directory }}/chaindata/config/genesis.json.original"
-  register: genesis_file
+  register: genesis_chaindata_file
+  when: HOST_COUNT|int > 1
 
 - set_fact:
-    genesis: "{{ (genesis_file.content|b64decode|from_json) }}"
+    genesis_chaindata: "{{ (genesis_chaindata_file.content|b64decode|from_json) }}"
+  when: HOST_COUNT|int > 1
+
+# nodekeys
 
 - name: Get nodekey
   command: chdir={{ working_directory }} /usr/bin/loom nodekey
   register: nodekey
+  when: HOST_COUNT|int > 1
 
 - name: Keep nodekey
   set_fact:
     nodekey: "{{ nodekey.stdout_lines[0] }}"
+  when: HOST_COUNT|int > 1
 
-- name: Copy newly combined genesis.json
+# Copy templates
+
+- name: Copy newly combined {{ working_directory }}/chaindata/config/genesis.json
   template:
-    src: templates/genesis.json.j2
+    src: templates/chaindata-config-genesis.json.j2
     dest: "{{ working_directory }}/chaindata/config/genesis.json"
     owner: "{{ user }}"
     group: "{{ user }}"
     mode: 0644
+  when: HOST_COUNT|int > 1
+
+- name: Copy newly combined {{ working_directory }}/genesis.json
+  template:
+    src: templates/genesis.json.j2
+    dest: "{{ working_directory }}/genesis.json"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0644
+  when: HOST_COUNT|int > 1
 
 - name: Copy init script
   become: yes
@@ -73,6 +109,8 @@
     owner: root
     group: root
     mode: 0644
+
+# Restart
 
 - name: Restart loom service
   become: yes

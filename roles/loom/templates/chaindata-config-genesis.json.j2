@@ -1,0 +1,12 @@
+{% set validators=[] %}
+{% for host in groups['all'] %}
+  {{ validators.append(hostvars[host]['genesis_chaindata']['validators'][0] | to_nice_json) }}
+{% endfor %}
+{
+  "genesis_time": "0001-01-01T00:00:00Z",
+  "chain_id": "default",
+  "validators": [
+    {{ validators|join(',') }}
+  ],
+  "app_hash": ""
+}
