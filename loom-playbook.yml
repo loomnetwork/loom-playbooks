@@ -13,5 +13,8 @@
   gather_facts: yes
   connection: ssh
 
+  vars:
+    HOST_COUNT: "{{ ansible_play_hosts | length | int }}"
+
   roles:
     - loom

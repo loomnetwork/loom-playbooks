@@ -8,7 +8,7 @@ num_instances = 4
 private_network_prefix = "172.31.99."
 
 # Build numbers
-loom_build = "build-132"
+loom_build = "latest"
 
 # Hosts
 host_vars = {}
