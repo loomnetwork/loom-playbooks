@@ -34,7 +34,7 @@
     tags: ['loom']
 
 - name: Provision all instances
-  hosts: google_compute,amazon_ec2
+  hosts: amazon_ec2
   gather_facts: yes
   connection: ssh
 
