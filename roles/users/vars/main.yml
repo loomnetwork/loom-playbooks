@@ -1,0 +1,19 @@
+---
+users:
+  jenkins:
+    shell: /bin/bash
+    debian_groups: sudo
+
+  ady:
+    shell: /bin/bash
+    debian_groups: sudo
+
+  kevin:
+    shell: /bin/bash
+    debian_groups: sudo
+
+  lock:
+    shell: /bin/bash
+    debian_groups: sudo
+
+users_removed:

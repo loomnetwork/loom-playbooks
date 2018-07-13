@@ -1,0 +1,81 @@
+---
+- name: Install rsyslog-gnutls package
+  become: yes
+  apt:
+    pkg: rsyslog-gnutls
+    state: present
+    update_cache: yes
+  when: use_tls == true
+
+- name: Set hostname file
+  become: yes
+  copy:
+    content: "{{ inventory_hostname }}\n"
+    dest: /etc/hostname
+
+- name: Set hostname immediately
+  become: yes
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Ensure {{ inventory_hostname }} is in /etc/hosts
+  become: yes
+  lineinfile:
+    path: /etc/hosts
+    regexp: '^127\.0\.0\.1.*localhost'
+    line: "127.0.0.1 {{ inventory_hostname }} localhost"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy json template file
+  become: yes
+  copy:
+    src: files/01-json-template.conf
+    dest: /etc/rsyslog.d/01-json-template.conf
+    owner: root
+    group: root
+    mode: 0644
+  when: rsyslog_server is defined
+  notify:
+  - Restart rsyslog service
+
+- name: Copy output configuration script (non-TLS)
+  become: yes
+  template:
+    src: templates/60-output.conf.j2
+    dest: /etc/rsyslog.d/60-output.conf
+    owner: root
+    group: root
+    mode: 0644
+  when:
+    - rsyslog_server is defined
+    - use_tls == false
+  notify:
+  - Restart rsyslog service
+
+- name: Copy output configuration script (TLS)
+  become: yes
+  template:
+    src: templates/60-output-tls.conf.j2
+    dest: /etc/rsyslog.d/60-output.conf
+    owner: root
+    group: root
+    mode: 0644
+  when:
+    - rsyslog_server is defined
+    - use_tls == true
+  notify:
+  - Restart rsyslog service
+
+- name: Copy logstash certificate authority file
+  become: yes
+  copy:
+    src: ../elk_server/files/logstash-ca.crt
+    dest: /etc/logstash-ca.pem
+    owner: root
+    group: root
+    mode: 0644
+  when: use_tls == true
+  notify:
+  - Restart rsyslog service

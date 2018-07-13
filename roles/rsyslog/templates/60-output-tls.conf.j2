@@ -1,0 +1,10 @@
+# This line sends all lines to defined IP address at port 10515,
+# using the "json-template" format template, via TLS
+
+$DefaultNetstreamDriver gtls # use gtls netstream driver
+$ActionSendStreamDriverMode 1 # require TLS for the connection
+$ActionSendStreamDriverAuthMode anon # server is NOT authenticated
+
+$DefaultNetstreamDriverCAFile /etc/logstash-ca.pem
+
+*.*                         @@{{ rsyslog_server }}:10515;json-template

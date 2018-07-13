@@ -1,0 +1,27 @@
+---
+  - name: sudo without password in debian
+    become: yes
+    lineinfile: "dest=/etc/sudoers state=present regexp='^%sudo' line='%sudo ALL=(ALL) NOPASSWD: ALL'"
+    when: ansible_os_family == "Debian"
+
+  - name: Add users in debian from vars file
+    become: yes
+    user: name={{ item.key }}
+          groups={{ item.value.debian_groups }}
+          shell={{ item.value.shell }}
+    with_dict: "{{ users | default({}) }}"
+    when: ansible_os_family == "Debian"
+
+  - name: Add ssh key for from vars file
+    become: yes
+    authorized_key: user={{ item.key }}
+                    key={{ lookup('file', '{{ item.key }}.pub') }}
+    with_dict: "{{ users | default({}) }}"
+
+  - name: remove user in users_removed
+    become: yes
+    user: name={{ item }}
+          state=absent
+          remove=yes
+    when: users_removed is defined
+    with_items: "{{ users_removed | default({}) }}"
