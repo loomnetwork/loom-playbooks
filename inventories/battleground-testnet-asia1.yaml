@@ -1,0 +1,30 @@
+---
+all:
+  vars:
+    disk_size: 100
+    loom_build: latest
+    zb_build: latest
+    resource_prefix: battleground-testnet-asia1
+    aws_regions:
+      ap-southeast-1:
+        vpc: vpc-09d98f6e
+        vpc_cidr: 10.10.0.0/16
+        ami: ami-81cefcfd
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+    rsyslog_server: zombiechain-elk.devdc.io
+  children:
+    amazon_ec2:
+      vars:
+        instance_type: m4.large
+        user_data: |
+          #!/bin/bash
+          sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.5 1
+        ansible_ssh_user: ubuntu
+        ansible_ssh_private_key_file: ~/.ssh/battleground-testnet-asia1_key-ap-southeast-1.pem
+        region: ap-southeast-1
+      hosts:
+        battleground-testnet-asia1-aws0:
+          ansible_hostname: battleground-testnet-asia1-aws0
+          ansible_host: 13.229.133.68
+          private_ip: 10.10.0.66
+          subnet: subnet-35686e52

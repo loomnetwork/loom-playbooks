@@ -1,0 +1,45 @@
+---
+- name: Local
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+  - name: Create local directory to download binaries
+    file:
+      path: "{{ playbook_dir }}/downloaded_files"
+      state: directory
+    tags: ['loom']
+
+  - name: Retrieve the loom binary
+    command: curl -sL -o {{ playbook_dir }}/downloaded_files/loom-{{ loom_build }} https://private.delegatecall.com/loom/linux/{{ loom_build }}/loom creates={{ playbook_dir }}/downloaded_files/loom-{{ loom_build }}
+    tags: ['loom']
+
+  - name: Make sure loom is executable
+    local_action:
+      module: file
+      path: "{{ playbook_dir }}/downloaded_files/loom-{{ loom_build }}"
+      state: file
+      mode: "0755"
+    tags: ['loom']
+
+  - name: Get loom version
+    shell: "{{ playbook_dir }}/downloaded_files/loom-{{ loom_build }} version"
+    register: loom_output
+    tags: ['loom']
+
+  - name: Print loom version
+    debug:
+      msg: "Loom version: {{ loom_output.stderr }}"
+    tags: ['loom']
+
+- name: Provision all instances
+  hosts: google_compute,amazon_ec2
+  gather_facts: yes
+  connection: ssh
+
+  roles:
+    - { role: users, tags: ['users'] }
+    - { role: loom, tags: ['loom'], working_directory: /opt/loom/workdir, user: nobody, group: nogroup, HOST_COUNT: "{{ ansible_play_hosts|length|int }}" }
+    - { role: node_exporter, tags: ['node_exporter'] }
+    - { role: rsyslog, tags: ['rsyslog'], use_tls: true }
