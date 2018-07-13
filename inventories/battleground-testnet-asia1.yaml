@@ -19,8 +19,6 @@ all:
         user_data: |
           #!/bin/bash
           sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.5 1
-        ansible_ssh_user: ubuntu
-        ansible_ssh_private_key_file: ~/.ssh/battleground-testnet-asia1_key-ap-southeast-1.pem
         region: ap-southeast-1
       hosts:
         battleground-testnet-asia1-aws0:
