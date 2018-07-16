@@ -1,4 +1,110 @@
 ---
+#
+# This playbook facilitates the creation of resources before creation of instances for a Zombie Chain cluster
+#
+# - VPC
+# - Subnets
+# - Internet Gateway
+# - Route Table
+# - EC2 Instance Profile
+#
+# The only value it looks for in the inventory is {{ resource_prefix }}
+#
+# ansible-playbook zombiechain-aws.yaml -vv -e resource_prefix=name-for-cluster
+#
+
+- name: Create instance(s)
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    vpc_name: "{{ resource_prefix }}"
+    vpc_cidr: 10.10.0.0/16
+    region: ap-southeast-1
+    instance_profile: "{{ resource_prefix }}"
+    availability_zones:
+      - { ap-southeast-1a: 10.10.0.0/24 }
+      - { ap-southeast-1b: 10.10.1.0/24 }
+      - { ap-southeast-1c: 10.10.2.0/24 }
+  tasks:
+
+  - name: Create VPC
+    ec2_vpc_net:
+      name: "{{ vpc_name }}"
+      cidr_block: "{{ vpc_cidr }}"
+      region: "{{ region }}"
+    register: vpc
+
+  # - debug: var=vpc
+
+  - name: Lookup route tables
+    ec2_vpc_route_table_facts:
+      region: "{{ region }}"
+      filters:
+        vpc-id: "{{ vpc.vpc.id }}"
+    register: vpc_route_tables
+
+  # - debug: var=vpc_route_tables
+
+  - name: Create subnet
+    ec2_vpc_subnet:
+      state: present
+      vpc_id: "{{ vpc.vpc.id }}"
+      cidr: "{{ item.value }}"
+      az: "{{ item.key }}"
+      tags:
+        Name: "{{ vpc.vpc.tags.Name }}-{{ item.key }}"
+    with_dict: "{{ availability_zones }}"
+    register: subnets
+
+  # - debug: var=subnets
+
+  - name: Create internet gateway
+    ec2_vpc_igw:
+      vpc_id: "{{ vpc.vpc.id }}"
+      state: present
+      region: "{{ region }}"
+      tags:
+        Name: "{{ vpc.vpc.tags.Name }}-{{ region }}"
+    register: igw
+
+  # - debug: var=igw
+
+  - set_fact:
+      subnet_list: []
+
+  - set_fact:
+      subnet_list: "{{ subnet_list }} + ['{{ item.subnet.id }}']"
+    with_items: "{{ subnets.results }}"
+
+  - name: Set up public subnet route table
+    ec2_vpc_route_table:
+      vpc_id: "{{ vpc.vpc.id }}"
+      region: "{{ region }}"
+      subnets: "{{ subnet_list }}"
+      lookup: id
+      route_table_id: "{{ vpc_route_tables.route_tables[0].id }}"
+      routes:
+        - dest: 0.0.0.0/0
+          gateway_id: "{{ igw.gateway_id }}"
+      tags:
+        Name: "{{ vpc.vpc.tags.Name }}-{{ region }}-rt"
+    register: route_table
+
+  - name: Create AWS instance profile
+    iam_role:
+      name: "{{ instance_profile }}"
+      create_instance_profile: true
+      assume_role_policy_document: "{{ lookup('file','zombiechain_policy.json') }}"
+      description: "Instance profile for {{ resource_prefix }}"
+
+  # - debug: var=route_table
+
+  - name: Print information to be inserted into inventory
+    debug:
+      msg: "VPC id: {{ vpc.vpc.id }}, Subnets: {{ subnet_list }}, CIDR block: {{ vpc.vpc.cidr_block }}"
+
 - name: Create instance(s)
   hosts: localhost
   connection: local
