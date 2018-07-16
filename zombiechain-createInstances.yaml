@@ -30,8 +30,8 @@
       module: ec2_group
       name: "{{ resource_prefix }}_sg-{{ item.key }}"
       description: Security group for zombiechain instances
-      vpc_id: "{{ item.value.vpc }}"
-      region: "{{ item.key }}"
+      vpc_id: "{{ aws_vpc_id }}"
+      region: "{{ aws_region }}"
       rules:
         - proto: tcp
           from_port: 22
@@ -50,7 +50,7 @@
             - 46656-46658
             - 9999
           cidr_ip:
-            - "{{ item.value.vpc_cidr }}"
+            - "{{ aws_vpc_subnet }}"
             - "0.0.0.0/0"
     with_dict: "{{ aws_regions }}"
     when: groups['amazon_ec2'] is defined
@@ -61,24 +61,24 @@
       id: "{{ hostvars[item]['ansible_hostname'] }}"
       key_name: "{{ resource_prefix }}_key-{{ hostvars[item]['region'] }}"
       group: "{{ resource_prefix }}_sg-{{ hostvars[item]['region'] }}"
-      instance_type: "{{ hostvars[item]['instance_type'] }}"
-      image: "{{ aws_regions[hostvars[item]['region']]['ami'] }}"
+      instance_type: "{{ aws_instance_type }}"
+      image: "{{ aws_ami_id }}"
       wait: yes
       wait_timeout: 500
-      instance_profile_name: "{{ resource_prefix }}"
+      instance_profile_name: "{{ aws_instance_profile }}"
       instance_tags:
           Name: "{{ hostvars[item]['ansible_hostname'] }}"
-      region: "{{ hostvars[item]['region'] }}"
-      vpc_subnet_id: "{{ hostvars[item]['subnet'] }}"
+      region: "{{ aws_region }}"
+      vpc_subnet_id: "{{ aws_subnet }}"
       assign_public_ip: yes
       monitoring: yes
-      user_data: "{{ hostvars[item]['user_data'] }}"
+      user_data: "{{ aws_user_data }}"
       volumes:
         - device_name: /dev/sda1
           volume_type: io1
           volume_size: "{{ disk_size }}"
           iops: 1000
-          delete_on_termination: false
+          delete_on_termination: true
           name: "ssdisk-{{ hostvars[item]['ansible_hostname'] }}"
       state: present
     register: ec2_results
