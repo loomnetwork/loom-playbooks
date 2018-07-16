@@ -1,0 +1,25 @@
+---
+all:
+  vars:
+    disk_size: 100
+    loom_build: latest
+    zb_build: latest
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+    aws_ami_id: ami-a4dc46db
+    aws_instance_type: m4.large
+    aws_region: us-east-1
+    aws_vpc_id: vpc-5cfef627
+    aws_vpc_subnet: 10.10.0.0/16
+    aws_subnet: subnet-e74fabd9
+    aws_instance_profile: loadtest-vpc
+    aws_keypair_name: jenkins
+    life_timeout: 604800
+    user_data: |
+     #!/bin/bash
+     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.5 1
+  children:
+    battleground:
+      hosts:
+        battleground-0:
+          ansible_hostname: battleground-{{ instance_prefix }}-0
