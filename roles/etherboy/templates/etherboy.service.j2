@@ -3,7 +3,7 @@ Description=Etherboy
 After=network.target
 
 {% set peers=[] %}
-{% for host in groups['etherboy'] %}
+{% for host in groups['launched'] %}
   {% if hostvars[host]['private_ip'] != hostvars[inventory_hostname]['private_ip'] %}
     {% set peer = "tcp://" + hostvars[host]['nodekey'] + "@" + hostvars[host]['private_ip'] + ":46656" %}
     {{ peers.append(peer) }}
@@ -14,7 +14,7 @@ After=network.target
 Type=simple
 User=ubuntu
 WorkingDirectory=/home/ubuntu
-{% if hostvars[inventory_hostname]['ansible_hostname'] == 'etherboy-instance-1' %}
+{% if hostvars[inventory_hostname]['ansible_hostname'] == 'etherboy-t-0' %}
 ExecStart=/usr/bin/loom run
 {% else %}
 ExecStart=/usr/bin/loom run {{ peers|join(',')}}
@@ -25,7 +25,7 @@ StartLimitInterval=0
 LimitNOFILE=500000
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier={{ syslog_identifier }}
+SyslogIdentifier={{ hostvars[inventory_hostname]['ansible_hostname'] }}
 
 [Install]
 WantedBy=multi-user.target

@@ -1,0 +1,5 @@
+---
+# For possibilities see https://github.com/prometheus/node_exporter/releases
+# For context, see https://github.com/loomnetwork/ops/issues/82#issuecomment-391292305
+node_exporter_version: "0.15.2"
+node_exporter_architecture: "amd64"
